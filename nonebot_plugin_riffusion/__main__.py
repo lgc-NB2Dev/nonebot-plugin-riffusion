@@ -1,6 +1,5 @@
 import asyncio
 import re
-import shlex
 from typing import Optional
 
 from arclet.alconna import (
@@ -123,13 +122,12 @@ cmd_riffusion = on_alconna(
             ),
         ),
         meta=CommandMeta(
-            description="你给歌词，AI 作曲",
-            example=f"riffusion -R\nriffusion {shlex.quote(get_random_lyrics())}",
+            description="你给歌词，AI 作曲\n给出一段歌词，AI 将会根据你的歌词生成一段 12 秒的音频",
+            example='riffusion -R\nriffusion -s Upbeat "If we ever broke up"',
         ),
         behaviors=[RiffusionBehavior()],
     ),
     aliases={"riff"},
-    skip_for_unmatch=False,
     auto_send_output=True,
     use_cmd_start=True,
 )
