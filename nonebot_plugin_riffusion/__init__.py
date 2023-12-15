@@ -8,8 +8,8 @@ from .config import ConfigModel  # noqa: E402
 __version__ = "0.1.0"
 __plugin_meta__ = PluginMetadata(
     name="Riffusion",
-    description="AI 唱歌",
-    usage="",
+    description="你给歌词，AI 作曲",
+    usage="使用指令 riffusion -h 查看帮助",
     type="application",
     homepage="https://github.com/lgc-NB2Dev/nonebot-plugin-riffusion",
     config=ConfigModel,

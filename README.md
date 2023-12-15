@@ -12,7 +12,7 @@
 
 # NoneBot-Plugin-Riffusion
 
-_✨ AI 唱歌 ✨_
+_✨ 你给歌词，AI 作曲 ✨_
 
 <img src="https://img.shields.io/badge/python-3.8+-blue.svg" alt="python">
 <a href="https://pdm.fming.dev">

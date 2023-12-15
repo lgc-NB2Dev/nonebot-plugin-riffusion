@@ -4,8 +4,8 @@
 [metadata]
 groups = ["default"]
 strategy = ["cross_platform"]
-lock_version = "4.4"
-content_hash = "sha256:fa85f10f1ee25deb9820fd9b2477c5e2ce18ddcf66da9c3bc74a27e8d5be661d"
+lock_version = "4.4.1"
+content_hash = "sha256:d9363fda7827769e651b7108964206a1291c073ec672114ec3cc9c66a1177f7f"
 
 [[package]]
 name = "anyio"

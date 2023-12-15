@@ -7,6 +7,8 @@ from httpx import AsyncClient
 from pydantic import BaseModel, validator
 from pydantic.main import ModelMetaclass
 
+from .config import config
+
 PRESET_PROMPTS_MAP = {
     "Upbeat": ["edm dance song, electronic female vocals"],
     "Shred": ["Rock"],
@@ -89,6 +91,10 @@ class Base64DataUrl:
     mime: str
     data: bytes
 
+    @property
+    def ext(self) -> str:
+        return self.mime.split("/")[-1] if "/" in self.mime else f"{self.mime}.bin"
+
 
 def validator_decode_base64_data_url(v) -> Base64DataUrl:
     try:
@@ -136,11 +142,7 @@ def get_random_lyrics() -> str:
     return random.choice(PRESET_LYRICS)
 
 
-async def generate_single(
-    lyrics: str,
-    prompt: str,
-    tag: str = "/,Surprise",
-) -> SingleGeneratedResult:
+async def generate_single(lyrics: str, prompt: str, tag: str) -> SingleGeneratedResult:
     async with AsyncClient() as cli:
         resp = await cli.post(
             "https://www.riffusion.com/api/trpc/inference.singleTextToAudio",
@@ -163,18 +165,7 @@ async def generate_single(
                 },
             },
             follow_redirects=True,
-            timeout=30,
+            timeout=config.riffusion_timeout,
         )
         resp.raise_for_status()
         return SingleGeneratedResult.parse_obj(resp.json()["result"]["data"]["json"])
-
-
-async def generate_single_with_preset_prompt(
-    lyrics: str,
-    prompt_key: str,
-) -> SingleGeneratedResult:
-    return await generate_single(
-        lyrics,
-        get_sound_prompt(prompt_key),
-        f"/,{prompt_key}",
-    )
