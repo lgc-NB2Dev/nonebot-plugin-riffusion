@@ -5,7 +5,6 @@ from typing import Optional
 from arclet.alconna import (
     Alconna,
     Arg,
-    ArgFlag,
     Args,
     Arparma,
     ArparmaBehavior,
@@ -57,11 +56,6 @@ class RecallManager:
         asyncio.create_task(do())
 
 
-class ReprStrOutBoundsBehave(OutBoundsBehave):
-    def __repr__(self) -> str:
-        return "；".join((x if isinstance(x, str) else str(x)) for x in self.args)
-
-
 class RiffusionBehavior(ArparmaBehavior):
     def operate(self, interface: Arparma):
         style: Optional[str] = interface["style"]
@@ -71,19 +65,19 @@ class RiffusionBehavior(ArparmaBehavior):
 
         if style:
             if prompt:
-                raise ReprStrOutBoundsBehave("不能同时指定 预设风格 Prompt 和 自定义 Prompt")
+                raise OutBoundsBehave("不能同时指定 预设风格 Prompt 和 自定义 Prompt")
             if style not in PRESET_PROMPTS_MAP:
-                raise ReprStrOutBoundsBehave("预设风格不存在")
+                raise OutBoundsBehave("预设风格不存在")
 
         if lyrics:
             if random_lyrics:
-                raise ReprStrOutBoundsBehave("不能同时 使用随机歌词 和 指定歌词")
+                raise OutBoundsBehave("不能同时 使用随机歌词 和 指定歌词")
             if not ENGLISH_REGEX.match(lyrics):
-                raise ReprStrOutBoundsBehave("歌词仅支持英文")
+                raise OutBoundsBehave("歌词仅支持英文")
             if len(lyrics.split()) > 25:
-                raise ReprStrOutBoundsBehave("请将歌词限制在 25 词以内")
+                raise OutBoundsBehave("请将歌词限制在 25 词以内")
         elif not random_lyrics:  # and not lyrics
-            raise ReprStrOutBoundsBehave("请指定歌词，或使用随机歌词")
+            raise OutBoundsBehave("请指定歌词，或使用随机歌词")
 
 
 cmd_riffusion = on_alconna(
@@ -115,10 +109,9 @@ cmd_riffusion = on_alconna(
         ),
         Args(
             Arg(
-                "lyrics",
+                "lyrics?",
                 value=str,
                 notice="歌词（仅支持英文）",
-                flags=[ArgFlag.OPTIONAL],
             ),
         ),
         meta=CommandMeta(
@@ -128,9 +121,15 @@ cmd_riffusion = on_alconna(
         behaviors=[RiffusionBehavior()],
     ),
     aliases={"riff"},
-    auto_send_output=True,
+    skip_for_unmatch=False,
     use_cmd_start=True,
 )
+
+
+@cmd_riffusion.handle()
+async def _(matcher: AlconnaMatcher, parma: Arparma):
+    if parma.error_info:
+        await matcher.finish(f"{parma.error_info}\n使用指令 `riffusion -h` 查看帮助")
 
 
 @cmd_riffusion.handle()
