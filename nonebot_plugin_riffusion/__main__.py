@@ -12,9 +12,9 @@ from arclet.alconna import (
     Option,
     store_true,
 )
-from arclet.alconna.exceptions import OutBoundsBehave
+from arclet.alconna.exceptions import OutBoundsBehave, SpecialOptionTriggered
 from nonebot import logger
-from nonebot_plugin_alconna import AlconnaMatcher, on_alconna
+from nonebot_plugin_alconna import AlconnaMatcher, CommandResult, on_alconna
 from nonebot_plugin_alconna.uniseg import Receipt, UniMessage
 
 from .config import config
@@ -127,9 +127,12 @@ cmd_riffusion = on_alconna(
 
 
 @cmd_riffusion.handle()
-async def _(matcher: AlconnaMatcher, parma: Arparma):
-    if parma.error_info:
-        await matcher.finish(f"{parma.error_info}\n使用指令 `riffusion -h` 查看帮助")
+async def _(matcher: AlconnaMatcher, res: CommandResult):
+    if not res.result.error_info:
+        return
+    if isinstance(res.result.error_info, SpecialOptionTriggered):
+        await matcher.finish(res.output)
+    await matcher.finish(f"{res.result.error_info}\n使用指令 `riffusion -h` 查看帮助")
 
 
 @cmd_riffusion.handle()
