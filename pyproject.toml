@@ -1,6 +1,6 @@
 [project]
 name = "nonebot-plugin-riffusion"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Template plugin project"
 authors = [{ name = "student_2333", email = "lgc2333@126.com" }]
 dependencies = [
