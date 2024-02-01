@@ -143,7 +143,7 @@ def get_random_lyrics() -> str:
 
 
 async def generate_single(lyrics: str, prompt: str, tag: str) -> SingleGeneratedResult:
-    async with AsyncClient() as cli:
+    async with AsyncClient(proxies=config.proxy) as cli:
         resp = await cli.post(
             "https://www.riffusion.com/api/trpc/inference.singleTextToAudio",
             headers={
