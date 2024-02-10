@@ -2,6 +2,7 @@ import base64
 import random
 import uuid
 from dataclasses import dataclass
+from typing import Any
 
 from httpx import AsyncClient
 from pydantic import BaseModel, validator
@@ -81,7 +82,7 @@ def camel_case(string: str, upper_first: bool = False) -> str:
 
 
 class CamelAliasModelMeta(ModelMetaclass):
-    def __new__(mcs, name, bases, namespace, **kwargs):  # noqa: N804
+    def __new__(mcs, name, bases, namespace, **kwargs):  # noqa: N804, ANN001
         kwargs["alias_generator"] = camel_case
         return super().__new__(mcs, name, bases, namespace, **kwargs)
 
@@ -96,7 +97,7 @@ class Base64DataUrl:
         return self.mime.split("/")[-1] if "/" in self.mime else f"{self.mime}.bin"
 
 
-def validator_decode_base64_data_url(v) -> Base64DataUrl:
+def validator_decode_base64_data_url(v: Any) -> Base64DataUrl:
     try:
         assert isinstance(v, str)
         head, b64str = v.split(",", 1)
