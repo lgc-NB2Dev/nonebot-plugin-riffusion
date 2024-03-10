@@ -58,8 +58,8 @@ class RecallManager:
 
 class RiffusionBehavior(ArparmaBehavior):
     def operate(self, interface: Arparma):
-        style: Optional[str] = interface["style"]
-        prompt: Optional[str] = interface["prompt"]
+        style: Optional[str] = interface["style"].value
+        prompt: Optional[str] = interface["prompt"].value
         random_lyrics: bool = interface["random-lyrics"].value
         lyrics: Optional[str] = interface["lyrics"]
 
@@ -137,8 +137,8 @@ async def _(matcher: AlconnaMatcher, res: CommandResult):
 
 @cmd_riffusion.handle()
 async def _(matcher: AlconnaMatcher, parma: Arparma):
-    style: Optional[str] = parma["style"]
-    custom_prompt: Optional[str] = parma["prompt"]
+    style: Optional[str] = parma["style"].value
+    custom_prompt: Optional[str] = parma["prompt"].value
     use_random_lyrics: bool = parma["random-lyrics"].value
 
     lyrics: str = get_random_lyrics() if use_random_lyrics else parma["lyrics"]
