@@ -1,6 +1,6 @@
 from typing import Optional
 
-from nonebot import get_driver
+from nonebot import get_plugin_config
 from pydantic import BaseModel
 
 
@@ -11,4 +11,4 @@ class ConfigModel(BaseModel):
     riffusion_break_url: bool = False
 
 
-config: ConfigModel = ConfigModel.parse_obj(get_driver().config)
+config = get_plugin_config(ConfigModel)

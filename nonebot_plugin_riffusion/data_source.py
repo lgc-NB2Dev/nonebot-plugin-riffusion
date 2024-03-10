@@ -2,13 +2,30 @@ import base64
 import random
 import uuid
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Literal, Optional
 
 from httpx import AsyncClient
+from nonebot.compat import PYDANTIC_V2, type_validate_python
 from pydantic import BaseModel, validator
-from pydantic.main import ModelMetaclass
 
 from .config import config
+
+if PYDANTIC_V2:
+    from pydantic import (
+        ConfigDict,
+        field_validator,  # type: ignore
+    )
+else:
+    from pydantic import validator
+
+    def field_validator(
+        __field: str,
+        *fields: str,
+        mode: Literal["before", "after", "wrap", "plain"] = "after",
+        check_fields: Optional[bool] = None,  # noqa: ARG001
+    ):
+        return validator(__field, *fields, pre=(mode == "before"), allow_reuse=True)
+
 
 PRESET_PROMPTS_MAP = {
     "Upbeat": ["edm dance song, electronic female vocals"],
@@ -81,12 +98,6 @@ def camel_case(string: str, upper_first: bool = False) -> str:
     return f"{pfx}{sfx}"
 
 
-class CamelAliasModelMeta(ModelMetaclass):
-    def __new__(mcs, name, bases, namespace, **kwargs):  # noqa: N804, ANN001
-        kwargs["alias_generator"] = camel_case
-        return super().__new__(mcs, name, bases, namespace, **kwargs)
-
-
 @dataclass
 class Base64DataUrl:
     mime: str
@@ -97,7 +108,7 @@ class Base64DataUrl:
         return self.mime.split("/")[-1] if "/" in self.mime else f"{self.mime}.bin"
 
 
-def validator_decode_base64_data_url(v: Any) -> Base64DataUrl:
+def validator_decode_base64_data_url(cls, v: Any) -> Base64DataUrl:  # noqa: ANN001, ARG001
     try:
         assert isinstance(v, str)
         head, b64str = v.split(",", 1)
@@ -114,7 +125,7 @@ class SingleAudioOutput(BaseModel):
     # lyrics: {"words": [{"end": float, pronunciation: str, start: float, text: str, wav2vec2_format: Optional[Any]}]}
     seed: int
 
-    _decode_audio = validator("audio", pre=True, allow_reuse=True)(
+    _decode_audio = field_validator("audio", mode="before")(
         validator_decode_base64_data_url,
     )
 
@@ -123,12 +134,19 @@ class SingleImageOutput(BaseModel):
     image: Base64DataUrl
     key: str
 
-    _decode_image = validator("image", pre=True, allow_reuse=True)(
+    _decode_image = field_validator("image", mode="before")(
         validator_decode_base64_data_url,
     )
 
 
-class SingleGeneratedResult(BaseModel, metaclass=CamelAliasModelMeta):
+class SingleGeneratedResult(BaseModel):
+    if PYDANTIC_V2:
+        model_config = ConfigDict(alias_generator=camel_case)
+    else:
+
+        class Config:
+            alias_generator = camel_case
+
     audio_output: SingleAudioOutput
     image_output: SingleImageOutput
     title: str
@@ -169,4 +187,7 @@ async def generate_single(lyrics: str, prompt: str, tag: str) -> SingleGenerated
             timeout=config.riffusion_timeout,
         )
         resp.raise_for_status()
-        return SingleGeneratedResult.parse_obj(resp.json()["result"]["data"]["json"])
+        return type_validate_python(
+            SingleGeneratedResult,
+            resp.json()["result"]["data"]["json"],
+        )
