@@ -1,7 +1,7 @@
 [project]
 name = "nonebot-plugin-riffusion"
 dynamic = ["version"]
-description = "Template plugin project"
+description = "Let AI riff a song for you."
 authors = [{ name = "student_2333", email = "lgc2333@126.com" }]
 dependencies = [
     "nonebot2>=2.2.0",
